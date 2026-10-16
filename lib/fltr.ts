@@ -40,21 +40,10 @@ export function fileName(fltr: Fltr, dials: DialValues): string {
 
 /**
  * The name shown in the homepage preview ("fltr: <name>"). Start from scratch uses
- * its file name; a remixed preset keeps its name and gets a badge instead.
+ * its .fltr name; a remixed preset keeps its name and gets a badge instead.
  */
 export function previewName(fltr: Fltr, dials: DialValues): string {
   return isBlank(fltr) ? fileName(fltr, dials) : fltr.name;
-}
-
-/** The file name shown under each row of the "Your fltrs" list: the file name at the preset. */
-export function listFileName(fltr: Fltr): string {
-  return fltrFileName(fileName(fltr, fltr.preset));
-}
-
-/** The demo title bar's status: the current file name, prefixed with "editing" once any dial has moved. */
-export function statusLine(fltr: Fltr, dials: DialValues): string {
-  const file = fltrFileName(fileName(fltr, dials));
-  return isRemixed(fltr, dials) ? `editing ${file}` : file;
 }
 
 export interface RankedStory {

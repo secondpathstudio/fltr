@@ -10,7 +10,6 @@ import {
   previewName,
   rankStories,
   serializeFltrFile,
-  statusLine,
 } from "@/lib/fltr";
 import { ALL_FLTRS, DEFAULT_FLTR_ID, type DialId, type DialValues, type Fltr } from "@/lib/sample-data";
 import { Term } from "../term";
@@ -59,11 +58,6 @@ export function Demo() {
           </p>
 
           <div className="mt-8 rounded-md border border-line bg-surface">
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-line px-4 py-2 font-mono text-[13px] text-muted">
-              <span>fltr.world/demo</span>
-              <span aria-live="polite">{statusLine(fltr, dials)}</span>
-            </div>
-
             <div className="grid md:grid-cols-2">
               <div className="p-[clamp(14px,2vw,22px)]">
                 <h3 className="mb-3 font-mono text-[15px] font-bold">Your fltrs</h3>
@@ -87,9 +81,13 @@ export function Demo() {
                 </div>
                 <Dials values={dials} onChange={setDial} />
                 <p className="mt-3 text-[14px] text-muted">
-                  {blank
-                    ? "Start from neutral and set each dial. The file below updates as you go."
-                    : "Moving any dial makes it your own remix. The original stays as it was."}
+                  {blank ? (
+                    "Start from neutral and set each dial. The file below updates as you go."
+                  ) : (
+                    <>
+                      Moving any dial makes it your own <Term>fltr</Term>. The original stays as it was.
+                    </>
+                  )}
                 </p>
               </div>
             </div>

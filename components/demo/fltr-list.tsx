@@ -1,4 +1,3 @@
-import { listFileName } from "@/lib/fltr";
 import type { Fltr } from "@/lib/sample-data";
 
 interface FltrListProps {
@@ -18,12 +17,11 @@ export function FltrList({ fltrs, selectedId, onSelect }: FltrListProps) {
               type="button"
               aria-pressed={selected}
               onClick={() => onSelect(fltr)}
-              className={`flex min-h-14 w-full flex-col justify-center rounded px-3 py-2 text-left ${
+              className={`flex min-h-14 w-full items-center rounded px-3 py-2 text-left ${
                 selected ? "bg-hi text-on-hi" : "bg-transparent text-fg hover:bg-bg"
               }`}
             >
               <span className="text-[16px] leading-snug font-bold">{fltr.name}</span>
-              <span className="font-mono text-[12.5px] opacity-75">{listFileName(fltr)}</span>
             </button>
           </li>
         );

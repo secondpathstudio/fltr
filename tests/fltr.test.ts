@@ -6,16 +6,14 @@ import {
   fltrFileName,
   formatTags,
   isRemixed,
-  listFileName,
   originalDials,
   previewName,
   rankStories,
   readout,
   serializeFltrFile,
   slugify,
-  statusLine,
 } from "@/lib/fltr";
-import { ALL_FLTRS, BLANK_FLTR, FLTRS, type DialValues, type Fltr } from "@/lib/sample-data";
+import { ALL_FLTRS, BLANK_FLTR, type DialValues, type Fltr } from "@/lib/sample-data";
 
 const fltr = (id: string): Fltr => {
   const f = ALL_FLTRS.find((x) => x.id === id);
@@ -130,10 +128,6 @@ describe("remixing", () => {
     expect(isRemixed(climate, restored)).toBe(false);
   });
 
-  it("shows the file name in the status line, prefixed with editing once remixed", () => {
-    expect(statusLine(climate, climate.preset)).toBe("climate-without-doom.fltr");
-    expect(statusLine(climate, { ...climate.preset, local: 0 })).toBe("editing climate-without-doom-remix.fltr");
-  });
 });
 
 describe("naming", () => {
@@ -147,24 +141,12 @@ describe("naming", () => {
   it("names Start from scratch New fltr everywhere, then Your new fltr once remixed", () => {
     const dials = { ...BLANK_FLTR.preset, solutions: 8 };
     expect(BLANK_FLTR.name).toBe("Start from scratch");
-    expect(listFileName(BLANK_FLTR)).toBe("new-fltr.fltr");
     expect(previewName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("New fltr");
     expect(previewName(BLANK_FLTR, dials)).toBe("Your new fltr");
     expect(fileName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("New fltr");
     expect(fileName(BLANK_FLTR, dials)).toBe("Your new fltr");
-    expect(statusLine(BLANK_FLTR, BLANK_FLTR.preset)).toBe("new-fltr.fltr");
-    expect(statusLine(BLANK_FLTR, dials)).toBe("editing your-new-fltr.fltr");
-  });
-
-  it("shows each list row's file name, with new-fltr.fltr for Start from scratch", () => {
-    expect(ALL_FLTRS.map(listFileName)).toEqual([
-      "climate-without-doom.fltr",
-      "ai-signal-no-hype.fltr",
-      "f1-no-rumors.fltr",
-      "local-minus-the-crime-bait.fltr",
-      "new-fltr.fltr",
-    ]);
-    expect(ALL_FLTRS.slice(0, 4)).toEqual(FLTRS);
+    expect(fltrFileName(fileName(BLANK_FLTR, BLANK_FLTR.preset))).toBe("new-fltr.fltr");
+    expect(fltrFileName(fileName(BLANK_FLTR, dials))).toBe("your-new-fltr.fltr");
   });
 });
 
