@@ -1,7 +1,7 @@
 export function SiteHeader() {
   return (
     <header className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
-      <a href="#join" className="wordmark rounded-md">
+      <a href="#join" className="wordmark inline-block rounded-md py-1">
         FLTR
       </a>
       <nav aria-label="Main" className="flex flex-wrap items-center gap-x-5 gap-y-2">

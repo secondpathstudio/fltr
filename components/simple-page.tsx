@@ -7,7 +7,7 @@ export function SimplePage({ title, children }: { title: string; children: React
   return (
     <>
       <header className="container-page py-6">
-        <Link href="/" className="wordmark rounded-md">
+        <Link href="/" className="wordmark inline-block rounded-md py-1">
           FLTR
         </Link>
       </header>

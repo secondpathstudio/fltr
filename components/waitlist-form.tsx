@@ -110,7 +110,7 @@ export function WaitlistForm() {
         Open source. No ads, ever. We&apos;ll only email you about the launch.
       </p>
       <p className="mt-2 text-base">
-        <Link href="/privacy" className="text-primary underline underline-offset-4">
+        <Link href="/privacy" className="text-ink underline decoration-primary decoration-2 underline-offset-4">
           How we handle your email
         </Link>
       </p>

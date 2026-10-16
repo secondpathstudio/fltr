@@ -16,7 +16,13 @@ export const metadata: Metadata = {
 type Outcome = "confirmed" | "invalid" | "error";
 
 async function confirm(token: string | undefined): Promise<Outcome> {
-  const email = verifyToken(token, getTokenSecret());
+  let email: string | null;
+  try {
+    email = verifyToken(token, getTokenSecret());
+  } catch (error) {
+    console.error(`[confirm] ${String(error)}`);
+    return "error";
+  }
   if (!email) return "invalid";
   try {
     const mailer = getMailer();
