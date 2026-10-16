@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -13,7 +13,10 @@ const MESSAGES = {
 
 type ErrorCode = keyof typeof MESSAGES;
 
-export function WaitlistForm() {
+/** The waitlist signup, used in the hero and in the Join section. */
+export function WaitlistForm({ showPrivacyLink = false }: { showPrivacyLink?: boolean }) {
+  const id = useId();
+  const ids = { email: `${id}-email`, error: `${id}-error`, note: `${id}-note`, company: `${id}-company` };
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<ErrorCode | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -57,11 +60,28 @@ export function WaitlistForm() {
     inputRef.current?.focus();
   }
 
+  const note = (
+    <p id={ids.note} className="mt-3 text-[14px] text-muted">
+      Open source. No ads, ever. We&apos;ll only email you about the launch.
+      {showPrivacyLink && (
+        <>
+          {" "}
+          <Link href="/privacy" className="text-fg underline underline-offset-4">
+            How we handle your email
+          </Link>
+        </>
+      )}
+    </p>
+  );
+
   if (status === "success") {
     return (
-      <p role="status" className="rounded-2xl border-2 border-primary bg-label px-5 py-4 text-lg font-bold text-ink shadow-riso-sm">
-        Almost there. Check your inbox and click the link to confirm your spot.
-      </p>
+      <div className="max-w-xl">
+        <p role="status" className="rounded border border-line px-4 py-3 font-mono text-[16px]">
+          Almost there. Check your inbox and click the link to confirm your spot.
+        </p>
+        {note}
+      </div>
     );
   }
 
@@ -69,13 +89,13 @@ export function WaitlistForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="max-w-xl">
-      <label htmlFor="waitlist-email" className="block font-bold text-ink">
+      <label htmlFor={ids.email} className="block text-[15px] text-muted">
         Email address
       </label>
       <div className="mt-2 flex flex-wrap gap-3">
         <input
           ref={inputRef}
-          id="waitlist-email"
+          id={ids.email}
           name="email"
           type="email"
           inputMode="email"
@@ -83,13 +103,13 @@ export function WaitlistForm() {
           placeholder="you@example.com"
           required
           aria-invalid={hasError || undefined}
-          aria-describedby={hasError ? "waitlist-error waitlist-note" : "waitlist-note"}
-          className="min-w-0 flex-[1_1_260px] rounded-xl border-2 border-primary bg-surface px-4 py-3 text-lg text-ink placeholder:text-muted"
+          aria-describedby={hasError ? `${ids.error} ${ids.note}` : ids.note}
+          className="h-[50px] min-w-0 flex-[1_1_240px] rounded border border-line bg-surface px-3 font-mono text-[16px] text-fg placeholder:text-muted"
         />
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="rounded-xl border-2 border-primary bg-primary px-5 py-3 text-lg font-bold text-on-primary shadow-riso-sm hover:translate-x-px hover:translate-y-px disabled:cursor-wait"
+          className="h-[50px] rounded border border-hi bg-hi px-5 font-mono text-[16px] font-bold text-on-hi disabled:cursor-wait"
         >
           Join the waitlist
         </button>
@@ -97,23 +117,16 @@ export function WaitlistForm() {
 
       {/* Honeypot: hidden from people and screen readers; bots tend to fill it in. */}
       <div aria-hidden="true" className="absolute -left-[10000px] h-px w-px overflow-hidden">
-        <label htmlFor="waitlist-company">Company</label>
-        <input id="waitlist-company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+        <label htmlFor={ids.company}>Company</label>
+        <input id={ids.company} name="company" type="text" tabIndex={-1} autoComplete="off" />
       </div>
 
       {hasError && (
-        <p id="waitlist-error" className="mt-3 border-l-4 border-accent pl-3 font-bold text-ink">
+        <p id={ids.error} className="mt-3 border-l-2 border-fg pl-3 text-[15px] text-fg">
           {MESSAGES[error]}
         </p>
       )}
-      <p id="waitlist-note" className="mt-4 text-base text-muted">
-        Open source. No ads, ever. We&apos;ll only email you about the launch.
-      </p>
-      <p className="mt-2 text-base">
-        <Link href="/privacy" className="text-ink underline decoration-primary decoration-2 underline-offset-4">
-          How we handle your email
-        </Link>
-      </p>
+      {note}
     </form>
   );
 }

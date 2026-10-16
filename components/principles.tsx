@@ -1,37 +1,53 @@
-const PRINCIPLES = [
+import type { ReactNode } from "react";
+import { Term } from "./term";
+
+const PRINCIPLES: { term: string; description: ReactNode }[] = [
   {
-    title: "No ads, ever.",
-    body: "FLTR is paid for by the people who use it, not by advertisers.",
+    term: "No ads, ever",
+    description: (
+      <>
+        <Term>fltr</Term> is paid for by the people who use it, not by advertisers.
+      </>
+    ),
   },
   {
-    title: "Open source.",
-    body: "Read the code that ranks your homepage. Run it yourself if you like.",
+    term: "Open source",
+    description: "Read the code that ranks your homepage. Run it yourself if you like.",
   },
   {
-    title: "Your algorithm travels.",
-    body: "FLTRs are plain .fltr files. Take yours to any app that reads them.",
+    term: "Yours to keep",
+    description: (
+      <>
+        <Term>fltrs</Term> are plain <Term>.fltr</Term> files. Take yours to any app that reads them.
+      </>
+    ),
   },
   {
-    title: "Nothing hidden.",
-    body: "Every story shows its sources and why it’s on your page.",
+    term: "Nothing hidden",
+    description: "Every story shows its sources and why it’s on your page.",
   },
 ];
 
 export function Principles() {
   return (
-    <section aria-labelledby="principles-heading" className="container-page py-16">
-      <h2 id="principles-heading" className="sr-only">
-        Our principles
-      </h2>
-      {/* Not a sequence, so a plain list without visual numbering. */}
-      <ul className="grid gap-x-8 gap-y-10 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
-        {PRINCIPLES.map((p) => (
-          <li key={p.title} className="border-t-[6px] border-accent pt-4">
-            <h3 className="font-display text-xl font-bold text-primary">{p.title}</h3>
-            <p className="mt-2 max-w-[38ch] text-muted">{p.body}</p>
-          </li>
-        ))}
-      </ul>
+    <section aria-labelledby="principles-heading" className="border-t border-line">
+      <div className="container-page py-16">
+        <h2 id="principles-heading" className="sr-only">
+          Principles
+        </h2>
+        {/* Not a sequence, so no numbering. */}
+        <dl className="max-w-[860px] border-t border-line">
+          {PRINCIPLES.map((p) => (
+            <div
+              key={p.term}
+              className="grid gap-x-8 gap-y-1 border-b border-line py-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]"
+            >
+              <dt className="font-mono text-[16px] font-bold">{p.term}</dt>
+              <dd className="text-[17px] text-muted">{p.description}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </section>
   );
 }

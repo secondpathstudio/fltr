@@ -1,23 +1,24 @@
+import Link from "next/link";
+
 export function SiteHeader() {
   return (
-    <header className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-6">
-      <a href="#join" className="wordmark inline-block rounded-md py-1">
-        FLTR
-      </a>
-      <nav aria-label="Main" className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <a
-          href="#format"
-          className="font-bold text-primary underline decoration-2 underline-offset-4 hover:decoration-accent"
-        >
-          The .fltr format
-        </a>
-        <a
-          href="#join"
-          className="rounded-full border-2 border-primary bg-surface px-4 py-2 font-bold text-primary hover:bg-deck"
-        >
-          Join the waitlist
-        </a>
-      </nav>
+    <header className="border-b border-line">
+      <div className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-3 py-4">
+        <Link href="/#join" className="inline-block rounded-[3px] py-1 font-mono text-[20px] leading-none font-bold text-fg">
+          fltr
+        </Link>
+        <nav aria-label="Main" className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[15px]">
+          <Link href="/#demo" className="text-muted hover:text-fg">
+            Try it
+          </Link>
+          <Link href="/#format" className="text-muted hover:text-fg">
+            The .fltr format
+          </Link>
+          <Link href="/#join" className="rounded border border-fg px-3 py-1.5 text-fg hover:bg-hi hover:text-on-hi">
+            Join the waitlist
+          </Link>
+        </nav>
+      </div>
     </header>
   );
 }
