@@ -144,10 +144,11 @@ describe("naming", () => {
     expect(fileName(climate, dials)).toBe("Climate without doom (remix)");
   });
 
-  it("names Start from scratch Blank fltr / New fltr, then Your new fltr once remixed", () => {
+  it("names Start from scratch New fltr everywhere, then Your new fltr once remixed", () => {
     const dials = { ...BLANK_FLTR.preset, solutions: 8 };
     expect(BLANK_FLTR.name).toBe("Start from scratch");
-    expect(previewName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("Blank fltr");
+    expect(listFileName(BLANK_FLTR)).toBe("new-fltr.fltr");
+    expect(previewName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("New fltr");
     expect(previewName(BLANK_FLTR, dials)).toBe("Your new fltr");
     expect(fileName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("New fltr");
     expect(fileName(BLANK_FLTR, dials)).toBe("Your new fltr");
@@ -155,13 +156,13 @@ describe("naming", () => {
     expect(statusLine(BLANK_FLTR, dials)).toBe("editing your-new-fltr.fltr");
   });
 
-  it("shows each list row's file name, with new.fltr for Start from scratch", () => {
+  it("shows each list row's file name, with new-fltr.fltr for Start from scratch", () => {
     expect(ALL_FLTRS.map(listFileName)).toEqual([
       "climate-without-doom.fltr",
       "ai-signal-no-hype.fltr",
       "f1-no-rumors.fltr",
       "local-minus-the-crime-bait.fltr",
-      "new.fltr",
+      "new-fltr.fltr",
     ]);
     expect(ALL_FLTRS.slice(0, 4)).toEqual(FLTRS);
   });
