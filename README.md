@@ -1,6 +1,6 @@
 # fltr.world landing page
 
-The first public piece of FLTR: a one-page site with an interactive tape deck demo and a double opt-in waitlist on [Resend](https://resend.com). The full brief is in [`FLTR_LANDING_SPEC.md`](./FLTR_LANDING_SPEC.md).
+The first public piece of fltr: a one-page site with an interactive demo (pick a fltr, turn the dials, watch the homepage and the `.fltr` file change) and a double opt-in waitlist on [Resend](https://resend.com). The full brief is [`FLTR_LANDING_SPEC.md`](./FLTR_LANDING_SPEC.md) (v2, Terminal design).
 
 Stack: Next.js 16 (App Router, Cache Components), TypeScript strict, Tailwind CSS v4, React Email, Resend, zod, Vitest, Playwright, pnpm, Vercel.
 
@@ -28,17 +28,20 @@ Set `RESEND_API_KEY` and the IDs in `.env.local` to send real email from your ma
 | `pnpm build` / `pnpm start` | Production build and server |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | `next typegen` + `tsc --noEmit` |
-| `pnpm test` | Vitest unit tests: deck logic, tokens, validation, rate limiting, plus repo guardrails |
-| `pnpm test:e2e` | Playwright signup test against a dev server with Resend mocked (run `pnpm exec playwright install chromium` once first) |
+| `pnpm test` | Vitest unit tests: demo logic, tokens, validation, rate limiting, plus repo guardrails |
+| `pnpm test:e2e` | Playwright signup test against a production build on port 3200, with Resend mocked (run `pnpm exec playwright install chromium` once first). It uses `next start`, so it can run while `pnpm dev` is up |
 
-`tests/guardrails.test.ts` enforces two acceptance criteria on every test run: there are no hex colors outside `app/globals.css` and `lib/tokens.ts` (and the two files agree), and the word "filter" never shows up in source, apart from `Array.prototype.filter`.
+`tests/guardrails.test.ts` enforces acceptance criteria on every test run:
+- No hex colors appear outside `app/globals.css` and `lib/tokens.ts`, and the two files agree.
+- Source contains no "filter" (apart from `Array.prototype.filter`), no uppercase "FLTR" (identifiers like `FLTRS` are fine), and no "tape" or "cassette".
 
 ## Resend dashboard setup (one time)
 
 1. **Domain.** Under Domains, add `fltr.world` and create the SPF and DKIM DNS records it shows you. Wait until the domain shows as verified.
 2. **Segment.** Under Contacts → Segments, create a segment named **Waitlist**. Its ID is `RESEND_WAITLIST_SEGMENT_ID`.
 3. **Topic.** Under Contacts → Topics, create a topic named **Launch updates**. Its ID is `RESEND_LAUNCH_TOPIC_ID`. Recipients manage it from Resend's unsubscribe preference page.
-4. **API key.** Create an API key with sending and contacts access. That's `RESEND_API_KEY`.
+4. **Tracking off.** In the `fltr.world` domain settings, turn off open tracking and click tracking. The privacy page promises the emails don't track either.
+5. **API key.** Create an API key with sending and contacts access. That's `RESEND_API_KEY`.
 
 This uses global Contacts with Segments and Topics. The deprecated Audiences API (`audienceId`) isn't used.
 
@@ -49,11 +52,11 @@ This uses global Contacts with Segments and Topics. The deprecated Audiences API
 | `RESEND_API_KEY` | Production | Resend API key |
 | `RESEND_WAITLIST_SEGMENT_ID` | Production | ID of the **Waitlist** segment |
 | `RESEND_LAUNCH_TOPIC_ID` | Production | ID of the **Launch updates** topic |
-| `EMAIL_FROM` | No | Defaults to `FLTR <hello@fltr.world>` |
+| `EMAIL_FROM` | No | Defaults to `fltr <hello@fltr.world>` (lowercase name) |
 | `WAITLIST_TOKEN_SECRET` | Production | 32+ random bytes, e.g. `openssl rand -base64 32`. Rotating it invalidates links that haven't been clicked yet |
 | `NEXT_PUBLIC_SITE_URL` | No | Used for confirm links, metadata, robots and sitemap. Defaults to `https://fltr.world` |
 | `SEND_WELCOME_EMAIL` | No | `true` sends a short welcome email after a first confirmation |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Recommended | Shared rate limiting. Without them, a per-instance in-memory limiter is used |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Recommended | Shared rate limiting. Without them, a per-instance in-memory limiter is used. Setting the URL also adds the Upstash line to `/privacy`. It's read at build time, so redeploy after changing it |
 | `RESEND_MOCK_OUTBOX` | No | Path for the local outbox mock (used by Playwright). Ignored on Vercel |
 
 ## Deploying to Vercel
@@ -72,24 +75,31 @@ What's static: `/`, `/privacy`, the OG image, the favicon, `robots.txt` and `sit
 - **`POST /api/waitlist`**: rate limit (5 per IP per 10 minutes) → honeypot and minimum submit time → zod validation → send the confirmation email. Every accepted request, including duplicates and bots, gets the same `{ ok: true }`.
 - **`/confirm?token=…`**: verifies the token, then `contacts.create` with the segment and topic. If the contact already exists, it calls `contacts.segments.add` and `contacts.topics.update` to make sure both are set. Any other Resend error shows a "try again" page and is logged.
 - **Logging**: never the full address, only `domain#hash` (`redactEmail` in `lib/waitlist.ts`). Error text from providers is scrubbed too.
-- **The .fltr format**: `lib/fltr-spec.ts` holds the v0.1 type. `lib/fltr.ts` builds the file from the deck state.
+- **The demo**: `components/demo/` is one client component (fltr list, dials, homepage preview, live file). All the logic lives in `lib/fltr.ts` (ranking, ++tags, remix detection, naming, .fltr builder) and is unit-tested.
+- **The .fltr format**: `lib/fltr-spec.ts` holds the v0.1 type.
 
 ## Decisions
 
 Notes on places where the spec left room, or where something changed under it.
 
-- **`react-email` instead of `@react-email/components`.** `@react-email/components` (and `@react-email/render`) are deprecated on npm. Resend merged all components and `render` into the `react-email` package, so templates import from there. It's the same code under the maintainers' new package name.
+- **`react-email` instead of `@react-email/components`.** The spec names `@react-email/components`, but it (and `@react-email/render`) is deprecated on npm. Resend merged all components and `render` into the `react-email` package, so templates import from there. It's the same code under the maintainers' new package name.
+- **Three names for Start from scratch.** The spec gives a different name in each place, and each is used where it says: the list row shows `new.fltr`, the homepage preview shows "Blank fltr" / "Your new fltr", and the `.fltr` file's `name` is "New fltr" / "Your new fltr". So the status line and file bar show `new-fltr.fltr` before any dial moves.
+- **The status line** uses the current file name, so it reads `editing climate-without-doom-remix.fltr` once a preset is remixed.
+- **++tag ties** keep dial order. **Ranking ties** keep the stories' original order, so Start from scratch at neutral shows the first three stories, all "widely covered".
+- **Breakpoints.** The controls row and the format section switch from one column to two at 768px. The arrow beside "This example updates…" uses the same breakpoint: ↓ before the text when stacked, → after it side by side.
+- **Section order** follows the numbering in the spec: hero, demo, format, principles, join.
+- **Principles** have a visually hidden "Principles" heading, so the `<dl>` has a heading for screen-reader navigation.
+- **Plex Mono italic** is loaded as its own 400-italic face (`--font-mono-italic`) and used only for the ++tags, so the other weights don't pull in italic files.
+- **Emails use the light page tokens** (`page`, `page-text`, `page-muted`), with a dark "reversed" button. Email clients invert dark backgrounds unpredictably. Everything is still grayscale and comes from `lib/tokens.ts`.
+- **Header links** point to `/#demo`, `/#format` and `/#join`, so they also work from `/privacy` and `/confirm`, which share the header.
+- **Privacy page.** The copy is verbatim, `[BRACKETED]` placeholders included. The Upstash bullet only appears when `UPSTASH_REDIS_REST_URL` is set, and then without brackets. Resend and Vercel link to `https://resend.com/legal/privacy-policy` and `https://vercel.com/legal/privacy-policy` (both checked 2026-10-16).
 - **Minimum submit time.** The API is stateless, so the client sends `elapsedMs` (time since page load) along with `{ email, company }`, and the server treats anything under 2 seconds, or a missing value, as a bot. A determined bot can fake it. The honeypot and rate limit are the other two layers.
-- **The form needs JavaScript.** It posts JSON with `fetch`. A no-JS fallback wasn't in scope.
-- **Duplicate contacts.** Resend doesn't document an error code for "contact already exists". `isAlreadyExistsError` in `lib/resend.ts` matches HTTP 409 or an "already exists" message, and anything else is treated as a real failure. **Check this against the live API once** by confirming the same address twice. If Resend now upserts instead, the code still works.
+- **The form needs JavaScript.** It posts JSON with `fetch`. It appears twice (hero and Join), each with its own IDs from `useId`. Only the Join copy has the privacy link.
+- **Duplicate contacts.** Resend doesn't document an error code for "contact already exists". `isAlreadyExistsError` in `lib/resend.ts` matches HTTP 409 or an "already exists" message, and anything else is treated as a real failure. **Check this against the live API once** by confirming the same address twice.
 - **Re-confirmation** shows the same success page. The welcome email (when it's on) only goes out on the first confirmation.
-- **Confirming on GET**, as the spec asks. Some corporate link scanners open links before people do, which can confirm an address early. If that becomes a problem, switch `/confirm` to show a "Confirm my spot" button that submits a POST.
-- **Errors on `/confirm`.** The spec defines invalid and success states. A third state, "Something went wrong on our side. Try the link again in a minute.", covers Resend outages and missing configuration, so a working link isn't reported as expired.
+- **Confirming on GET**, as the spec asks. Some corporate link scanners open links before people do, which can confirm an address early. If that becomes a problem, switch `/confirm` to a "Confirm my spot" button that submits a POST.
+- **Errors on `/confirm`.** A third state, "Something went wrong on our side. Try the link again in a minute.", covers Resend outages and missing configuration, so a working link isn't reported as expired.
 - **Rate-limit message.** The spec gives two example errors. A 429 shows "That's a lot of tries in a short time. Wait a few minutes and try again."
-- **Tape sizes.** Tapes sit in a CSS grid: five in a row at about 205–235px wide on desktop, two per row on phones, all 150px tall.
-- **"Now playing" for a remixed tape** keeps the tape's name and adds the "Your remix" badge. The .fltr file's `name` becomes `<name> (remix)`.
-- **Ranking ties** keep the stories' original order, so the blank tape at neutral shows the first three stories.
-- **Accessibility extras.** A polite live region announces the new top story after a dial change. After "Back to original", focus moves to the deck title because the button disappears. The code block is focusable so keyboard users can scroll it.
-- **The theme-color meta tag, emails and the OG image** use `lib/tokens.ts`, because they can't read CSS variables. If you change a value in `globals.css`, change it there too. The guardrail test fails until you do.
-- **OG fonts.** `assets/fonts/` holds static Unbounded 700/900 TTFs (OFL) for `next/og`, which can't use `next/font`.
-- **The privacy page copy** wasn't in the spec, so it's a plain-language draft. Review it before launch, especially the deletion-by-reply promise.
+- **Accessibility extras.** The status line and a hidden "Top story: …" line are polite live regions. After "Back to original", focus moves to the dials heading because the button disappears. The code block is focusable so keyboard users can scroll it.
+- **Theme color, emails and the OG image** use `lib/tokens.ts`, because they can't read CSS variables. If you change a value in `globals.css`, change it there too. The guardrail test fails until you do.
+- **OG fonts.** `assets/fonts/` holds static IBM Plex Mono 400/700 TTFs (OFL) for `next/og`, which can't use `next/font`.
