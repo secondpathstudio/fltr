@@ -1,0 +1,233 @@
+@import "tailwindcss";
+
+/*
+ * The 10 color tokens. Every color on the site comes from here.
+ * Email and OG image code can't read CSS variables, so lib/tokens.ts mirrors
+ * these values; tests/guardrails.test.ts fails if the two drift apart.
+ */
+:root {
+  --fltr-primary:    #0078BF; /* headlines, buttons, borders, selected tape, code block */
+  --fltr-accent:     #FF48B0; /* offset shadows, label stripes, sliders, focus rings, principle bars */
+  --fltr-ink:        #0D3B66; /* body text */
+  --fltr-muted-text: #2E5B85; /* secondary text */
+  --fltr-paper:      #FBFCFD; /* page background */
+  --fltr-surface:    #FFFFFF; /* cards, inputs, unselected tapes */
+  --fltr-deck-tint:  #EAF3FA; /* deck panel background */
+  --fltr-label-tint: #FFB8DF; /* tape labels, "Your remix" badge, signup confirmation */
+  --fltr-lines:      #9CC8E6; /* dotted rules, dial borders, blank-tape dashed label */
+  --fltr-on-primary: #FFFFFF; /* text and reels on primary-colored fills */
+}
+
+@theme inline {
+  --color-primary: var(--fltr-primary);
+  --color-accent: var(--fltr-accent);
+  --color-ink: var(--fltr-ink);
+  --color-muted: var(--fltr-muted-text);
+  --color-paper: var(--fltr-paper);
+  --color-surface: var(--fltr-surface);
+  --color-deck: var(--fltr-deck-tint);
+  --color-label: var(--fltr-label-tint);
+  --color-lines: var(--fltr-lines);
+  --color-on-primary: var(--fltr-on-primary);
+
+  --font-display: var(--font-unbounded), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Flat risograph offset shadows: no blur, no gradients. */
+  --shadow-riso-sm: 4px 4px 0 var(--fltr-accent);
+  --shadow-riso: 6px 6px 0 var(--fltr-accent);
+  --shadow-riso-lg: 8px 8px 0 var(--fltr-accent);
+  --shadow-soft: 3px 3px 0 color-mix(in srgb, var(--fltr-primary) 25%, transparent);
+}
+
+@layer base {
+  html {
+    background: var(--fltr-paper);
+    color: var(--fltr-ink);
+  }
+
+  body {
+    background: var(--fltr-paper);
+    color: var(--fltr-ink);
+    font-family: var(--font-sans);
+    font-size: 18px;
+    line-height: 1.55;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--fltr-accent);
+    outline-offset: 3px;
+  }
+
+  input[type="range"] {
+    accent-color: var(--fltr-accent);
+  }
+
+  ::selection {
+    background: var(--fltr-label-tint);
+    color: var(--fltr-ink);
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: clamp(16px, 4vw, 48px);
+  }
+
+  .h1-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(40px, 6vw, 84px);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    color: var(--fltr-primary);
+  }
+
+  .h2-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(28px, 3.4vw, 48px);
+    line-height: 1.1;
+    color: var(--fltr-primary);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 26px;
+    line-height: 1;
+    color: var(--fltr-primary);
+    text-shadow: 3px 2px 0 var(--fltr-accent);
+  }
+
+  /* ---- Tapes ---- */
+
+  /* Five ~210–240px tapes in a row on desktop, wrapping down to two per row on phones. */
+  .tapes-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 20px;
+    padding-top: 12px;
+  }
+
+  .tape {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    height: 150px;
+    padding: 14px;
+    border: 2px solid var(--fltr-primary);
+    border-radius: 18px;
+    background: var(--fltr-surface);
+    color: var(--fltr-primary);
+    box-shadow: var(--shadow-soft);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .tape[aria-pressed="true"] {
+    background: var(--fltr-primary);
+    color: var(--fltr-on-primary);
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-riso);
+  }
+
+  .tape-blank[aria-pressed="false"] {
+    border-style: dashed;
+  }
+
+  .tape-label {
+    display: block;
+    padding: 8px 10px;
+    border-left: 6px solid var(--fltr-accent);
+    border-radius: 8px;
+    background: var(--fltr-label-tint);
+    color: var(--fltr-ink);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .tape-blank .tape-label {
+    background: var(--fltr-surface);
+    border: 2px dashed var(--fltr-lines);
+    border-left: 6px solid var(--fltr-accent);
+  }
+
+  .tape-window {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: min(100%, 150px);
+    margin-inline: auto;
+    padding: 6px 12px;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+  }
+
+  .tape-reel {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border: 4px solid currentColor;
+    border-radius: 50%;
+  }
+
+  .tape-reel::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .tape-strip {
+    flex: 1;
+    height: 2px;
+    margin-inline: 8px;
+    background: currentColor;
+  }
+
+  /* ---- .fltr file ---- */
+
+  .file-tab {
+    display: inline-block;
+    padding: 8px 14px;
+    border: 2px solid var(--fltr-primary);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+    background: var(--fltr-label-tint);
+    color: var(--fltr-ink);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .code-block {
+    margin: 0;
+    padding: 20px 22px;
+    overflow-x: auto;
+    border: 2px solid var(--fltr-primary);
+    border-radius: 0 18px 18px 18px;
+    background: var(--fltr-primary);
+    color: var(--fltr-on-primary);
+    box-shadow: var(--shadow-riso-lg);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tape {
+    transition: none;
+  }
+}
