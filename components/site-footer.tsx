@@ -7,12 +7,9 @@ export function SiteFooter() {
         <Link href="/" className="text-fg">
           fltr.world
         </Link>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-muted">
-          <p>Built in the open.</p>
-          <Link href="/privacy" className="underline underline-offset-4 hover:text-fg">
-            Privacy
-          </Link>
-        </div>
+        <Link href="/privacy" className="text-muted underline underline-offset-4 hover:text-fg">
+          Privacy
+        </Link>
       </div>
     </footer>
   );
