@@ -9,11 +9,12 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${PORT}` },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    // Resend is mocked: lib/resend.ts writes emails and contacts to this folder instead.
-    command: `pnpm next dev --port ${PORT}`,
+    // A production build, so it can run beside a local `next dev`. Resend is mocked:
+    // with RESEND_MOCK_OUTBOX set, lib/resend.ts writes to that folder and never calls Resend.
+    command: `pnpm next build && pnpm next start --port ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: false,
-    timeout: 120_000,
+    timeout: 240_000,
     env: {
       RESEND_MOCK_OUTBOX: ".outbox-e2e",
       RESEND_API_KEY: "",

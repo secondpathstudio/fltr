@@ -38,12 +38,27 @@ describe("color tokens", () => {
 });
 
 describe("terminology", () => {
-  it('never says "filter" outside of code like Array.prototype.filter', () => {
-    const offenders = files.filter((f) =>
-      readFileSync(f, "utf8")
-        .split("\n")
-        .some((line) => /filter/i.test(line.replace(/\.filter\(/g, ""))),
-    );
-    expect(offenders.map((f) => relative(ROOT, f))).toEqual([]);
+  // Strip code that legitimately contains these letters before checking.
+  const scrub = (line: string) =>
+    line
+      .replace(/\.filter\(/g, "")
+      // Identifiers like FLTRS, BLANK_FLTR, FLTR_FORMAT.
+      .replace(/\b\w*FLTR\w*\b/g, (m) => (m === "FLTR" ? m : ""));
+
+  const offenders = (pattern: RegExp) =>
+    files
+      .filter((f) => readFileSync(f, "utf8").split("\n").some((line) => pattern.test(scrub(line))))
+      .map((f) => relative(ROOT, f));
+
+  it('never says "filter"', () => {
+    expect(offenders(/filter/i)).toEqual([]);
+  });
+
+  it('writes the name in lowercase, never "FLTR"', () => {
+    expect(offenders(/\bFLTR\b/)).toEqual([]);
+  });
+
+  it("has no tape or cassette language left", () => {
+    expect(offenders(/\btapes?\b|cassette/i)).toEqual([]);
   });
 });
