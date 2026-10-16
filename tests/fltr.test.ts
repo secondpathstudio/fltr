@@ -1,34 +1,38 @@
 import { describe, expect, it } from "vitest";
 import {
   buildFltrFile,
-  displayName,
+  describeTags,
+  fileName,
   fltrFileName,
+  formatTags,
   isRemixed,
-  nowPlayingName,
+  listFileName,
   originalDials,
+  previewName,
   rankStories,
   readout,
   serializeFltrFile,
   slugify,
+  statusLine,
 } from "@/lib/fltr";
-import { BLANK_TAPE, TAPES, type DialValues, type Tape } from "@/lib/sample-data";
+import { ALL_FLTRS, BLANK_FLTR, FLTRS, type DialValues, type Fltr } from "@/lib/sample-data";
 
-const tape = (id: string): Tape => {
-  const t = [...TAPES, BLANK_TAPE].find((x) => x.id === id);
-  if (!t) throw new Error(`no tape ${id}`);
-  return t;
+const fltr = (id: string): Fltr => {
+  const f = ALL_FLTRS.find((x) => x.id === id);
+  if (!f) throw new Error(`no fltr ${id}`);
+  return f;
 };
-const climate = tape("climate");
+const climate = fltr("climate");
 
 describe("readout", () => {
   it.each([
-    [0, "Off"],
-    [1, "Less"],
-    [4, "Less"],
-    [5, "Neutral"],
-    [6, "More"],
-    [9, "More"],
-    [10, "Max"],
+    [0, "off"],
+    [1, "less"],
+    [4, "less"],
+    [5, "neutral"],
+    [6, "more"],
+    [9, "more"],
+    [10, "max"],
   ])("%i → %s", (value, word) => {
     expect(readout(value)).toBe(word);
   });
@@ -51,29 +55,7 @@ describe("rankStories", () => {
     const dials: DialValues = { ...climate.preset, outrage: 10, hype: 10, solutions: 5 };
     const [first, second] = rankStories(climate.stories, dials);
     expect(first.title).toBe("A celebrity’s private jet sparks online fury");
-    expect(first.why).toBe("Here because you turned up outrage");
     expect(second.title).toBe("Scientists warn it may already be too late");
-    expect(second.why).toBe("Here because you turned up hype");
-  });
-
-  it("explains a story by the dial with the largest positive contribution", () => {
-    const ranked = rankStories(climate.stories, climate.preset);
-    expect(ranked[0].why).toBe("Here because you turned up solutions");
-  });
-
-  it("lowercases multi-word dial labels in the why text", () => {
-    const ai = tape("ai");
-    const ranked = rankStories(ai.stories, ai.preset);
-    expect(ranked[0].title).toBe("Researchers publish a new benchmark for long tasks");
-    expect(ranked[0].why).toBe("Here because you turned up deep dives");
-  });
-
-  it("falls back to widely covered when no contribution is positive", () => {
-    const ranked = rankStories(BLANK_TAPE.stories, BLANK_TAPE.preset);
-    expect(ranked.every((s) => s.score === 0)).toBe(true);
-    expect(ranked.every((s) => s.why === "Here because it’s widely covered today")).toBe(true);
-    // Ties keep their original order.
-    expect(ranked.map((s) => s.title)).toEqual(BLANK_TAPE.stories.slice(0, 3).map((s) => s.title));
   });
 
   it("treats missing story attributes as 0", () => {
@@ -84,11 +66,55 @@ describe("rankStories", () => {
       ["No rumor attribute", 0],
     ]);
   });
+
+  it("keeps the original order for ties", () => {
+    const ranked = rankStories(BLANK_FLTR.stories, BLANK_FLTR.preset);
+    expect(ranked.every((s) => s.score === 0)).toBe(true);
+    expect(ranked.map((s) => s.title)).toEqual(BLANK_FLTR.stories.slice(0, 3).map((s) => s.title));
+  });
+});
+
+describe("++tags", () => {
+  it("lists up to two positive dials, largest contribution first", () => {
+    const ranked = rankStories(climate.stories, climate.preset);
+    expect(ranked.map((s) => formatTags(s.boostedBy))).toEqual([
+      "++solutions ++local",
+      "++solutions ++deep-dives",
+      "++solutions ++deep-dives",
+    ]);
+  });
+
+  it("hyphenates multi-word labels", () => {
+    const ai = fltr("ai");
+    const [top] = rankStories(ai.stories, ai.preset);
+    expect(top.title).toBe("Researchers publish a new benchmark for long tasks");
+    expect(formatTags(top.boostedBy)).toBe("++deep-dives");
+  });
+
+  it("caps at two tags", () => {
+    const dials: DialValues = { solutions: 10, local: 10, deep: 10, outrage: 5, hype: 5, rumor: 5 };
+    const [top] = rankStories(climate.stories, dials);
+    expect(top.boostedBy).toHaveLength(2);
+  });
+
+  it('says "widely covered" when no contribution is positive', () => {
+    const ranked = rankStories(BLANK_FLTR.stories, BLANK_FLTR.preset);
+    expect(ranked.every((s) => formatTags(s.boostedBy) === "widely covered")).toBe(true);
+    // Negative-only contributions don't count either.
+    const [story] = rankStories([{ title: "Hype only", hype: 1 }], { ...BLANK_FLTR.preset, hype: 0 }, 1);
+    expect(formatTags(story.boostedBy)).toBe("widely covered");
+  });
+
+  it("has a screen-reader version", () => {
+    expect(describeTags(["solutions", "local"])).toBe("Boosted by solutions and local");
+    expect(describeTags(["deep dives"])).toBe("Boosted by deep dives");
+    expect(describeTags([])).toBe("Widely covered");
+  });
 });
 
 describe("remixing", () => {
   it("is not remixed at the preset", () => {
-    for (const t of [...TAPES, BLANK_TAPE]) expect(isRemixed(t, t.preset)).toBe(false);
+    for (const f of ALL_FLTRS) expect(isRemixed(f, f.preset)).toBe(false);
   });
 
   it("is remixed when any dial differs from the preset", () => {
@@ -103,22 +129,41 @@ describe("remixing", () => {
     expect(isRemixed(climate, remixed)).toBe(true);
     expect(isRemixed(climate, restored)).toBe(false);
   });
+
+  it("switches the status line from playing to editing", () => {
+    expect(statusLine(climate, climate.preset)).toBe("playing climate-without-doom.fltr");
+    expect(statusLine(climate, { ...climate.preset, local: 0 })).toBe("editing climate-without-doom-remix.fltr");
+  });
 });
 
 describe("naming", () => {
-  it("names a remixed tape '<name> (remix)' and keeps its name under Now playing", () => {
+  it("keeps a remixed preset's name in the preview and adds (remix) in the file", () => {
     const dials = { ...climate.preset, local: 0 };
-    expect(displayName(climate, climate.preset)).toBe("Climate without doom");
-    expect(displayName(climate, dials)).toBe("Climate without doom (remix)");
-    expect(nowPlayingName(climate, dials)).toBe("Climate without doom");
+    expect(previewName(climate, dials)).toBe("Climate without doom");
+    expect(fileName(climate, climate.preset)).toBe("Climate without doom");
+    expect(fileName(climate, dials)).toBe("Climate without doom (remix)");
   });
 
-  it("names the blank tape 'Blank tape', then 'Your new FLTR' once remixed", () => {
-    const dials = { ...BLANK_TAPE.preset, solutions: 8 };
-    expect(displayName(BLANK_TAPE, BLANK_TAPE.preset)).toBe("Blank tape");
-    expect(displayName(BLANK_TAPE, dials)).toBe("Your new FLTR");
-    expect(nowPlayingName(BLANK_TAPE, BLANK_TAPE.preset)).toBe("Blank tape");
-    expect(nowPlayingName(BLANK_TAPE, dials)).toBe("Your new FLTR");
+  it("names Start from scratch Blank fltr / New fltr, then Your new fltr once remixed", () => {
+    const dials = { ...BLANK_FLTR.preset, solutions: 8 };
+    expect(BLANK_FLTR.name).toBe("Start from scratch");
+    expect(previewName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("Blank fltr");
+    expect(previewName(BLANK_FLTR, dials)).toBe("Your new fltr");
+    expect(fileName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("New fltr");
+    expect(fileName(BLANK_FLTR, dials)).toBe("Your new fltr");
+    expect(statusLine(BLANK_FLTR, BLANK_FLTR.preset)).toBe("playing new-fltr.fltr");
+    expect(statusLine(BLANK_FLTR, dials)).toBe("editing your-new-fltr.fltr");
+  });
+
+  it("shows each list row's file name, with new.fltr for Start from scratch", () => {
+    expect(ALL_FLTRS.map(listFileName)).toEqual([
+      "climate-without-doom.fltr",
+      "ai-signal-no-hype.fltr",
+      "f1-no-rumors.fltr",
+      "local-minus-the-crime-bait.fltr",
+      "new.fltr",
+    ]);
+    expect(ALL_FLTRS.slice(0, 4)).toEqual(FLTRS);
   });
 });
 
@@ -141,7 +186,7 @@ describe(".fltr output", () => {
     );
   });
 
-  it("adds remix_of right after name for a remixed tape", () => {
+  it("adds remix_of right after name for a remixed preset", () => {
     const file = buildFltrFile(climate, { ...climate.preset, deep: 7 });
     expect(Object.keys(file)).toEqual(["format", "name", "remix_of", "sources", "more", "less", "dials"]);
     expect(file.name).toBe("Climate without doom (remix)");
@@ -149,15 +194,15 @@ describe(".fltr output", () => {
     expect(file.more).toEqual(["solutions", "deep dives"]);
   });
 
-  it("never adds remix_of for the blank tape", () => {
-    const blank = buildFltrFile(BLANK_TAPE, BLANK_TAPE.preset);
-    const remixed = buildFltrFile(BLANK_TAPE, { ...BLANK_TAPE.preset, outrage: 0 });
+  it("never adds remix_of when starting from scratch", () => {
+    const blank = buildFltrFile(BLANK_FLTR, BLANK_FLTR.preset);
+    const remixed = buildFltrFile(BLANK_FLTR, { ...BLANK_FLTR.preset, outrage: 0 });
     expect(blank).not.toHaveProperty("remix_of");
-    expect(blank.name).toBe("Blank tape");
+    expect(blank.name).toBe("New fltr");
     expect(blank.more).toEqual([]);
     expect(blank.less).toEqual([]);
     expect(remixed).not.toHaveProperty("remix_of");
-    expect(remixed.name).toBe("Your new FLTR");
+    expect(remixed.name).toBe("Your new fltr");
     expect(remixed.less).toEqual(["outrage"]);
   });
 
@@ -173,8 +218,8 @@ describe("file names", () => {
   it.each([
     ["Climate without doom", "climate-without-doom.fltr"],
     ["Climate without doom (remix)", "climate-without-doom-remix.fltr"],
-    ["Blank tape", "blank-tape.fltr"],
-    ["Your new FLTR", "your-new-fltr.fltr"],
+    ["New fltr", "new-fltr.fltr"],
+    ["Your new fltr", "your-new-fltr.fltr"],
     ["AI signal, no hype", "ai-signal-no-hype.fltr"],
     ["Local, minus the crime-bait", "local-minus-the-crime-bait.fltr"],
   ])("%s → %s", (name, file) => {

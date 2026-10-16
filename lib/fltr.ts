@@ -1,7 +1,7 @@
-// Pure tape-deck logic: ranking, remix detection, and the .fltr builder.
+// Pure demo logic: ranking, ++tags, remix detection, and the .fltr builder.
 
 import { FLTR_EXTENSION, FLTR_FORMAT, type FltrDialKey, type FltrFileV01 } from "./fltr-spec";
-import { BLANK_TAPE, DIALS, type DialValues, type Story, type Tape } from "./sample-data";
+import { BLANK_FLTR, DIALS, type DialValues, type Fltr, type Story } from "./sample-data";
 
 export const DIAL_MIN = 0;
 export const DIAL_MAX = 10;
@@ -9,59 +9,70 @@ export const DIAL_NEUTRAL = 5;
 
 /** The word shown next to a dial, also used as its aria-valuetext. */
 export function readout(value: number): string {
-  if (value <= 0) return "Off";
-  if (value < 5) return "Less";
-  if (value === 5) return "Neutral";
-  if (value < 10) return "More";
-  return "Max";
+  if (value <= 0) return "off";
+  if (value < 5) return "less";
+  if (value === 5) return "neutral";
+  if (value < 10) return "more";
+  return "max";
 }
 
-export function isBlank(tape: Tape): boolean {
-  return tape.id === BLANK_TAPE.id;
+/** True for "Start from scratch". */
+export function isBlank(fltr: Fltr): boolean {
+  return fltr.id === BLANK_FLTR.id;
 }
 
-/** A tape is remixed when any dial differs from its preset. */
-export function isRemixed(tape: Tape, dials: DialValues): boolean {
-  return DIALS.some((d) => dials[d.id] !== tape.preset[d.id]);
+/** A fltr is remixed when any dial differs from its preset. */
+export function isRemixed(fltr: Fltr, dials: DialValues): boolean {
+  return DIALS.some((d) => dials[d.id] !== fltr.preset[d.id]);
 }
 
 /** Dial values to restore when "Back to original" is pressed. */
-export function originalDials(tape: Tape): DialValues {
-  return { ...tape.preset };
+export function originalDials(fltr: Fltr): DialValues {
+  return { ...fltr.preset };
 }
 
-/** The name shown under "Now playing" and written into the .fltr file. */
-export function displayName(tape: Tape, dials: DialValues): string {
-  const remixed = isRemixed(tape, dials);
-  if (isBlank(tape)) return remixed ? "Your new FLTR" : "Blank tape";
-  return remixed ? `${tape.name} (remix)` : tape.name;
+/** The name shown in the homepage preview ("fltr: <name>"). A remixed preset keeps its name and gets a badge instead. */
+export function previewName(fltr: Fltr, dials: DialValues): string {
+  if (isBlank(fltr)) return isRemixed(fltr, dials) ? "Your new fltr" : "Blank fltr";
+  return fltr.name;
 }
 
-/** The name shown in the deck's "Now playing" heading. A remixed tape keeps its name and gets a badge instead. */
-export function nowPlayingName(tape: Tape, dials: DialValues): string {
-  return isBlank(tape) ? displayName(tape, dials) : tape.name;
+/** The `name` written into the .fltr file. */
+export function fileName(fltr: Fltr, dials: DialValues): string {
+  const remixed = isRemixed(fltr, dials);
+  if (isBlank(fltr)) return remixed ? "Your new fltr" : "New fltr";
+  return remixed ? `${fltr.name} (remix)` : fltr.name;
+}
+
+/** The file name shown under each row of the "Your fltrs" list. */
+export function listFileName(fltr: Fltr): string {
+  return isBlank(fltr) ? `new${FLTR_EXTENSION}` : fltrFileName(fltr.name);
+}
+
+/** The demo title bar's status: "playing <file>", or "editing <file>" once any dial has moved. */
+export function statusLine(fltr: Fltr, dials: DialValues): string {
+  const verb = isRemixed(fltr, dials) ? "editing" : "playing";
+  return `${verb} ${fltrFileName(fileName(fltr, dials))}`;
 }
 
 export interface RankedStory {
   title: string;
   score: number;
-  why: string;
+  /** Lowercased labels of the dials that boosted this story most, largest first (up to 2). */
+  boostedBy: string[];
 }
 
-export function scoreStory(story: Story, dials: DialValues): { score: number; why: string } {
+export function scoreStory(story: Story, dials: DialValues): { score: number; boostedBy: string[] } {
   let score = 0;
-  let best: { label: string; contribution: number } | null = null;
+  const positive: { label: string; contribution: number }[] = [];
   for (const d of DIALS) {
     const contribution = ((dials[d.id] - DIAL_NEUTRAL) / DIAL_NEUTRAL) * (story[d.id] ?? 0);
     score += contribution;
-    if (contribution > 0 && (best === null || contribution > best.contribution)) {
-      best = { label: d.label, contribution };
-    }
+    if (contribution > 0) positive.push({ label: d.label.toLowerCase(), contribution });
   }
-  const why = best
-    ? `Here because you turned up ${best.label.toLowerCase()}`
-    : "Here because it’s widely covered today";
-  return { score, why };
+  // Stable sort: equal contributions keep dial order.
+  positive.sort((a, b) => b.contribution - a.contribution);
+  return { score, boostedBy: positive.slice(0, 2).map((p) => p.label) };
 }
 
 /** Rank stories highest score first (ties keep their original order) and return the top `limit`. */
@@ -70,17 +81,29 @@ export function rankStories(stories: Story[], dials: DialValues, limit = 3): Ran
     .map((story, index) => ({ title: story.title, index, ...scoreStory(story, dials) }))
     .sort((a, b) => b.score - a.score || a.index - b.index)
     .slice(0, limit)
-    .map(({ title, score, why }) => ({ title, score, why }));
+    .map(({ title, score, boostedBy }) => ({ title, score, boostedBy }));
 }
 
-export function buildFltrFile(tape: Tape, dials: DialValues): FltrFileV01 {
-  const remixed = isRemixed(tape, dials);
+/** Visual ++tags, e.g. "++solutions ++local" or "++deep-dives", or "widely covered". */
+export function formatTags(boostedBy: string[]): string {
+  if (boostedBy.length === 0) return "widely covered";
+  return boostedBy.map((label) => `++${label.replace(/\s+/g, "-")}`).join(" ");
+}
+
+/** Screen-reader version of the ++tags, e.g. "Boosted by solutions and local", or "Widely covered". */
+export function describeTags(boostedBy: string[]): string {
+  if (boostedBy.length === 0) return "Widely covered";
+  return `Boosted by ${boostedBy.join(" and ")}`;
+}
+
+export function buildFltrFile(fltr: Fltr, dials: DialValues): FltrFileV01 {
+  const remixed = isRemixed(fltr, dials);
   // Spread keeps the key order of the v0.1 format, with remix_of only when present.
   return {
     format: FLTR_FORMAT,
-    name: displayName(tape, dials),
-    ...(remixed && !isBlank(tape) ? { remix_of: tape.name } : {}),
-    sources: [...tape.sources],
+    name: fileName(fltr, dials),
+    ...(remixed && !isBlank(fltr) ? { remix_of: fltr.name } : {}),
+    sources: [...fltr.sources],
     more: DIALS.filter((d) => dials[d.id] >= 7).map((d) => d.label.toLowerCase()),
     less: DIALS.filter((d) => dials[d.id] <= 3).map((d) => d.label.toLowerCase()),
     dials: Object.fromEntries(DIALS.map((d) => [d.key, dials[d.id]])) as Record<FltrDialKey, number>,

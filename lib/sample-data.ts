@@ -1,4 +1,4 @@
-// Hardcoded demo data for the tape deck. Dial values run 0–10; story
+// Hardcoded data for the demo. Dial values run 0–10; story
 // attributes run 0–1, and a missing attribute means 0.
 
 export const DIALS = [
@@ -16,7 +16,8 @@ export type DialValues = Record<DialId, number>;
 
 export type Story = { title: string } & Partial<Record<DialId, number>>;
 
-export interface Tape {
+/** One algorithm: a fltr. */
+export interface Fltr {
   id: string;
   name: string;
   sources: string[];
@@ -24,7 +25,7 @@ export interface Tape {
   stories: Story[];
 }
 
-export const TAPES: Tape[] = [
+export const FLTRS: Fltr[] = [
   {
     id: "climate", name: "Climate without doom", sources: ["news", "bluesky", "youtube"],
     preset: { solutions: 9, local: 6, deep: 6, outrage: 1, hype: 1, rumor: 0 },
@@ -75,12 +76,13 @@ export const TAPES: Tape[] = [
   },
 ];
 
-// Blank tape: all dials at 5, stories = every story from the four tapes above.
-export const BLANK_TAPE: Tape = {
-  id: "blank", name: "Blank tape", sources: ["news", "bluesky", "youtube", "podcasts"],
+// "Start from scratch": all dials at 5, stories = every story from the four fltrs above.
+export const BLANK_FLTR: Fltr = {
+  id: "blank", name: "Start from scratch", sources: ["news", "bluesky", "youtube", "podcasts"],
   preset: { solutions: 5, local: 5, deep: 5, outrage: 5, hype: 5, rumor: 5 },
-  stories: TAPES.flatMap((t) => t.stories),
+  stories: FLTRS.flatMap((f) => f.stories),
 };
 
-export const ALL_TAPES: Tape[] = [...TAPES, BLANK_TAPE];
-export const DEFAULT_TAPE_ID = "climate";
+/** Everything in the "Your fltrs" list, in order. */
+export const ALL_FLTRS: Fltr[] = [...FLTRS, BLANK_FLTR];
+export const DEFAULT_FLTR_ID = "climate";

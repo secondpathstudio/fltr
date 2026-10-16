@@ -14,9 +14,9 @@ export type FltrDialKey = "solutions" | "local" | "deep_dives" | "outrage" | "hy
 
 export interface FltrFileV01 {
   format: typeof FLTR_FORMAT;
-  /** Display name of the FLTR. */
+  /** Display name of the fltr. */
   name: string;
-  /** Name of the FLTR this one was remixed from, if any. */
+  /** Name of the fltr this one was remixed from, if any. */
   remix_of?: string;
   /** Where stories come from, e.g. "news", "bluesky". */
   sources: string[];
