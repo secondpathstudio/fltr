@@ -1,30 +1,30 @@
 /**
- * Hex values of the 10 color tokens, for places that can't read CSS variables
- * (email clients, next/og images). The source of truth is the :root block in
- * app/globals.css; tests/guardrails.test.ts checks the two stay identical.
+ * Hex values of the 10 grayscale tokens, for places that can't read CSS
+ * variables (email clients, next/og images). The source of truth is the :root
+ * block in app/globals.css; tests/guardrails.test.ts checks the two match.
  */
 export const TOKENS = {
-  "--fltr-primary": "#0078BF",
-  "--fltr-accent": "#FF48B0",
-  "--fltr-ink": "#0D3B66",
-  "--fltr-muted-text": "#2E5B85",
-  "--fltr-paper": "#FBFCFD",
-  "--fltr-surface": "#FFFFFF",
-  "--fltr-deck-tint": "#EAF3FA",
-  "--fltr-label-tint": "#FFB8DF",
-  "--fltr-lines": "#9CC8E6",
-  "--fltr-on-primary": "#FFFFFF",
+  "--fltr-background": "#1B1B1B",
+  "--fltr-surface": "#222222",
+  "--fltr-lines": "#3A3A3A",
+  "--fltr-text": "#E8E8E8",
+  "--fltr-muted-text": "#A3A3A3",
+  "--fltr-highlight": "#E8E8E8",
+  "--fltr-on-highlight": "#1B1B1B",
+  "--fltr-page-background": "#EFEFEF",
+  "--fltr-page-text": "#161616",
+  "--fltr-page-muted-text": "#555555",
 } as const;
 
 export const colors = {
-  primary: TOKENS["--fltr-primary"],
-  accent: TOKENS["--fltr-accent"],
-  ink: TOKENS["--fltr-ink"],
-  muted: TOKENS["--fltr-muted-text"],
-  paper: TOKENS["--fltr-paper"],
+  bg: TOKENS["--fltr-background"],
   surface: TOKENS["--fltr-surface"],
-  deck: TOKENS["--fltr-deck-tint"],
-  label: TOKENS["--fltr-label-tint"],
-  lines: TOKENS["--fltr-lines"],
-  onPrimary: TOKENS["--fltr-on-primary"],
+  line: TOKENS["--fltr-lines"],
+  fg: TOKENS["--fltr-text"],
+  muted: TOKENS["--fltr-muted-text"],
+  hi: TOKENS["--fltr-highlight"],
+  onHi: TOKENS["--fltr-on-highlight"],
+  page: TOKENS["--fltr-page-background"],
+  pageFg: TOKENS["--fltr-page-text"],
+  pageMuted: TOKENS["--fltr-page-muted-text"],
 } as const;
