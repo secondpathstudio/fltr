@@ -130,8 +130,8 @@ describe("remixing", () => {
     expect(isRemixed(climate, restored)).toBe(false);
   });
 
-  it("switches the status line from playing to editing", () => {
-    expect(statusLine(climate, climate.preset)).toBe("playing climate-without-doom.fltr");
+  it("shows the file name in the status line, prefixed with editing once remixed", () => {
+    expect(statusLine(climate, climate.preset)).toBe("climate-without-doom.fltr");
     expect(statusLine(climate, { ...climate.preset, local: 0 })).toBe("editing climate-without-doom-remix.fltr");
   });
 });
@@ -152,7 +152,7 @@ describe("naming", () => {
     expect(previewName(BLANK_FLTR, dials)).toBe("Your new fltr");
     expect(fileName(BLANK_FLTR, BLANK_FLTR.preset)).toBe("New fltr");
     expect(fileName(BLANK_FLTR, dials)).toBe("Your new fltr");
-    expect(statusLine(BLANK_FLTR, BLANK_FLTR.preset)).toBe("playing new-fltr.fltr");
+    expect(statusLine(BLANK_FLTR, BLANK_FLTR.preset)).toBe("new-fltr.fltr");
     expect(statusLine(BLANK_FLTR, dials)).toBe("editing your-new-fltr.fltr");
   });
 

@@ -51,10 +51,10 @@ export function listFileName(fltr: Fltr): string {
   return fltrFileName(fileName(fltr, fltr.preset));
 }
 
-/** The demo title bar's status: "playing <file>", or "editing <file>" once any dial has moved. */
+/** The demo title bar's status: the current file name, prefixed with "editing" once any dial has moved. */
 export function statusLine(fltr: Fltr, dials: DialValues): string {
-  const verb = isRemixed(fltr, dials) ? "editing" : "playing";
-  return `${verb} ${fltrFileName(fileName(fltr, dials))}`;
+  const file = fltrFileName(fileName(fltr, dials));
+  return isRemixed(fltr, dials) ? `editing ${file}` : file;
 }
 
 export interface RankedStory {
