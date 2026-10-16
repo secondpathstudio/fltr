@@ -16,7 +16,6 @@ export default function Home() {
             <AsciiLogo />
             <h1 id="hero-heading" className="h1-display mt-8">
               Choose your own algorithm.
-              <span aria-hidden="true" className="cursor" />
             </h1>
             <p className="mt-6 max-w-[62ch] text-[clamp(17px,1.5vw,21px)] text-muted">
               Every app decides what you see. <Term>fltr</Term> lets you decide instead. Pick a <Term>fltr</Term>,

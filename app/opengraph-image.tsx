@@ -33,13 +33,8 @@ export default function OpengraphImage() {
         <div style={{ display: "flex", whiteSpace: "pre", fontSize: 26, lineHeight: 1.15, color: colors.muted }}>
           {LOGO}
         </div>
-        {/* Two explicit lines so the block cursor sits right after "algorithm." */}
-        <div style={{ display: "flex", flexDirection: "column", fontSize: 76, fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.03em" }}>
-          <div style={{ display: "flex" }}>Choose your own</div>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            algorithm.
-            <div style={{ display: "flex", width: 38, height: 62, marginLeft: 12, background: colors.fg }} />
-          </div>
+        <div style={{ display: "flex", fontSize: 76, fontWeight: 700, lineHeight: 1.1, letterSpacing: "-0.03em", maxWidth: 900 }}>
+          Choose your own algorithm.
         </div>
         <div
           style={{

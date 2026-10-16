@@ -96,34 +96,8 @@
     font-size: 0.94em;
   }
 
-  /* The single piece of ambient motion: a blinking block cursor after the H1. */
-  .cursor {
-    display: inline-block;
-    width: 0.5em;
-    height: 0.82em;
-    margin-left: 0.12em;
-    vertical-align: -0.06em;
-    background: var(--fltr-text);
-    animation: cursor-blink 1.1s steps(1) infinite;
-  }
-
   .tags {
     font-family: var(--font-mono-italic);
     font-style: italic;
-  }
-}
-
-@keyframes cursor-blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cursor {
-    animation: none;
   }
 }
