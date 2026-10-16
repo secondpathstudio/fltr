@@ -3,13 +3,14 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { SimplePage } from "@/components/simple-page";
+import { Term } from "@/components/term";
 import { welcomeEmail } from "@/lib/emails";
 import { getMailer } from "@/lib/resend";
 import { getTokenSecret, verifyToken } from "@/lib/token";
 import { redactEmail } from "@/lib/waitlist";
 
 export const metadata: Metadata = {
-  title: "Confirm your spot · FLTR",
+  title: "Confirm your spot · fltr",
   robots: { index: false, follow: false },
 };
 
@@ -53,9 +54,11 @@ async function ConfirmResult({ searchParams }: { searchParams: PageProps<"/confi
   if (outcome === "confirmed") {
     return (
       <SimplePage title="You're on the list.">
-        <p>You&apos;re on the list. We&apos;ll email you when FLTR opens.</p>
         <p>
-          <Link href="/" className="font-bold text-primary underline underline-offset-4">
+          You&apos;re on the list. We&apos;ll email you when <Term>fltr</Term> opens.
+        </p>
+        <p>
+          <Link href="/" className="underline underline-offset-4">
             Back to fltr.world
           </Link>
         </p>
@@ -68,7 +71,7 @@ async function ConfirmResult({ searchParams }: { searchParams: PageProps<"/confi
       <SimplePage title="Something went wrong.">
         <p>Something went wrong on our side. Try the link again in a minute.</p>
         <p>
-          <Link href="/" className="font-bold text-primary underline underline-offset-4">
+          <Link href="/" className="underline underline-offset-4">
             Back to fltr.world
           </Link>
         </p>
@@ -80,7 +83,7 @@ async function ConfirmResult({ searchParams }: { searchParams: PageProps<"/confi
     <SimplePage title="This link didn't work.">
       <p>This link has expired or isn&apos;t valid. Head back to fltr.world and sign up again.</p>
       <p>
-        <Link href="/#join" className="font-bold text-primary underline underline-offset-4">
+        <Link href="/#join" className="underline underline-offset-4">
           Sign up again
         </Link>
       </p>

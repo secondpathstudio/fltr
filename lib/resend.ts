@@ -40,7 +40,7 @@ export function isAlreadyExistsError(error: ResendError): boolean {
 
 function createResendMailer(): WaitlistMailer {
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
-  const from = process.env.EMAIL_FROM || "FLTR <hello@fltr.world>";
+  const from = process.env.EMAIL_FROM || "fltr <hello@fltr.world>";
 
   return {
     async sendEmail({ to, subject, html, text }) {

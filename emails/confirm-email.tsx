@@ -1,11 +1,11 @@
 import { Button, Link, Section, Text } from "react-email";
-import { EmailLayout, emailStyles } from "./layout";
+import { EmailLayout, EmailTerm, emailStyles } from "./layout";
 
-export const CONFIRM_SUBJECT = "Confirm your spot on the FLTR waitlist";
+export const CONFIRM_SUBJECT = "Confirm your spot on the fltr waitlist";
 
 export function confirmEmailText(confirmUrl: string): string {
   return [
-    "Confirm your email to join the FLTR waitlist.",
+    "Confirm your email to join the fltr waitlist.",
     "",
     `Confirm my spot: ${confirmUrl}`,
     "",
@@ -15,8 +15,10 @@ export function confirmEmailText(confirmUrl: string): string {
 
 export default function ConfirmEmail({ confirmUrl = "https://fltr.world/confirm?token=example" }: { confirmUrl?: string }) {
   return (
-    <EmailLayout preview="Confirm your email to join the FLTR waitlist.">
-      <Text style={emailStyles.text}>Confirm your email to join the FLTR waitlist.</Text>
+    <EmailLayout preview="Confirm your email to join the fltr waitlist.">
+      <Text style={emailStyles.text}>
+        Confirm your email to join the <EmailTerm>fltr</EmailTerm> waitlist.
+      </Text>
       <Section style={{ margin: "8px 0 24px" }}>
         <Button href={confirmUrl} style={emailStyles.button}>
           Confirm my spot

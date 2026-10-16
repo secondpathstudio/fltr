@@ -1,20 +1,16 @@
 import type { ReactNode } from "react";
 import { SiteFooter } from "./site-footer";
-import Link from "next/link";
+import { SiteHeader } from "./site-header";
 
-/** Shell for the small text pages (/confirm, /privacy). */
+/** Shell for the text pages (/confirm, /privacy): same header and footer, one ~68ch column. */
 export function SimplePage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <>
-      <header className="container-page py-6">
-        <Link href="/" className="wordmark inline-block rounded-md py-1">
-          FLTR
-        </Link>
-      </header>
-      <main className="container-page flex-1 py-12">
-        <div className="max-w-[65ch] rounded-[22px] border-2 border-primary bg-surface p-[clamp(20px,4vw,40px)] shadow-riso">
+      <SiteHeader />
+      <main className="container-page flex-1 py-14">
+        <div className="max-w-[68ch]">
           <h1 className="h2-display">{title}</h1>
-          <div className="mt-6 space-y-4 text-lg">{children}</div>
+          <div className="mt-6 space-y-4 text-[17px]">{children}</div>
         </div>
       </main>
       <SiteFooter />
